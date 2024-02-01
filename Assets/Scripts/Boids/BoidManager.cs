@@ -7,15 +7,6 @@ public class BoidManager : MonoBehaviour {
 
     const int threadGroupSize = 1024;
 
-    public enum PartStates
-    {
-        Attached,
-        Detached,
-        Returning
-    }
-
-    private PartStates currentState = PartStates.Attached;
-
     public BoidSettings settings;
     public ComputeShader compute;
     List<Part> parts = new List<Part>();
@@ -42,22 +33,6 @@ public class BoidManager : MonoBehaviour {
 
                     GameObject testObj = Instantiate(new GameObject("Test"));
                     testObj.transform.position = mousePos;
-                }
-
-                switch (currentState)
-                {
-                    case PartStates.Attached:
-                        functionName = "Detach";
-                        currentState = PartStates.Detached;
-                        break;
-                    case PartStates.Detached:
-                        functionName = "Return";
-                        currentState = PartStates.Returning;
-                        break;
-                    case PartStates.Returning:
-                        functionName = "Detach";
-                        currentState = PartStates.Detached;
-                        break;
                 }
             }
 
