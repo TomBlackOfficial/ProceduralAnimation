@@ -130,12 +130,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b0b3a02183999d849aa20cead3d15d90, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  position: {x: 0, y: 0, z: 0}
+  forward: {x: 0, y: 0, z: 0}
+  avgFlockHeading: {x: 0, y: 0, z: 0}
+  avgAvoidanceHeading: {x: 0, y: 0, z: 0}
+  centreOfFlockmates: {x: 0, y: 0, z: 0}
+  numPerceivedFlockmates: 0
   posOffset: {x: 0, y: 0, z: 0}
   rotOffset: {x: 0, y: 0, z: 0}
   scaleOffset: {x: 0, y: 0, z: 0}
   desiredPos: {x: 0, y: 0, z: 0}
-  detached: 0
-  returning: 0
+  currentState: 0
+  attached: 1
 --- !u!1 &3748475733190031807
 GameObject:
   m_ObjectHideFlags: 0

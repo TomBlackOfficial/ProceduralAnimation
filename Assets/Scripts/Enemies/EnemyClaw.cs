@@ -2,18 +2,10 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using RootMotion.FinalIK;
+using Unity.Mathematics;
 
 public class EnemyClaw : BoidManager
 {
-    public enum EnemyState
-    {
-        Idle,
-        Targeting,
-        Attacking,
-        Returning,
-        Dead
-    }
-
     public Transform player;
     public Transform target;
 
@@ -25,12 +17,14 @@ public class EnemyClaw : BoidManager
     [SerializeField] private AnimationCurve returnCurve;
     [SerializeField] private float returnDuration;
 
+    [Header("VFX")]
+    [SerializeField] private GameObject impactVFX;
+
     private float curveTimeElapsed = 0;
     private Vector3 curveStartPos;
     private Vector3 curveEndPos;
-    private EnemyState currentState = EnemyState.Targeting;
 
-    private void Update()
+    protected override void Update()
     {
         if (Input.GetKeyDown(KeyCode.T))
         {
@@ -45,6 +39,17 @@ public class EnemyClaw : BoidManager
         {
             Returning();
         }
+
+        base.Update();
+    }
+
+    public override void DetatchAll()
+    {
+        Vector3 direction = new Vector3(curveEndPos.x, 0, curveEndPos.z) - new Vector3(transform.position.x, 0, transform.position.z).normalized;
+        detatchOffset = (Vector3.up * 4) + (direction * 5);
+        base.DetatchAll();
+
+        StartCoroutine(WaitForSeconds(2, "ReturnAll"));
     }
 
     public void Attack()
@@ -69,7 +74,7 @@ public class EnemyClaw : BoidManager
 
         if (curveTimeElapsed >= returnDuration)
         {
-            currentState = EnemyState.Targeting;
+            currentState = EnemyState.Idle;
             return;
         }
 
@@ -84,6 +89,7 @@ public class EnemyClaw : BoidManager
 
         if (curveTimeElapsed >= attackDuration)
         {
+            Impact();
             Return();
             return;
         }
@@ -91,5 +97,18 @@ public class EnemyClaw : BoidManager
         float percent = Mathf.Clamp01(curveTimeElapsed / attackDuration);
         float curvePercent = attackCurve.Evaluate(percent);
         target.position = Vector3.LerpUnclamped(curveStartPos, curveEndPos, curvePercent);
+    }
+
+    private void Impact() 
+    {
+        CameraShakeManager.INSTANCE.ShakeOnce(12f, 0.35f, 0.25f);
+        Instantiate(impactVFX, curveEndPos, Quaternion.identity);
+    }
+
+    IEnumerator WaitForSeconds(float time, string functionName)
+    {
+        yield return new WaitForSeconds(time);
+
+        SendMessage(functionName);
     }
 }

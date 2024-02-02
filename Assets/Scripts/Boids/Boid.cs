@@ -26,14 +26,19 @@ public class Boid : MonoBehaviour {
 
     // Cached
     protected Transform cachedTransform;
-    public Transform target = null;
+    protected BoidManager manager;
+    protected Vector3 target;
+    protected bool targeting;
 
-    protected virtual void Awake () {
+    protected virtual void Awake () 
+    {
         cachedTransform = transform;
     }
 
-    public virtual void Initialize (BoidSettings settings) {
+    public virtual void Initialize (BoidSettings settings, BoidManager manager) 
+    {
         this.settings = settings;
+        this.manager = manager;
 
         position = cachedTransform.position;
         forward = -cachedTransform.up;
@@ -42,12 +47,14 @@ public class Boid : MonoBehaviour {
         velocity = -transform.up * startSpeed;
     }
 
-    public virtual void UpdateBoid () {
+    public virtual void UpdateBoid () 
+    {
         Vector3 acceleration = Vector3.zero;
 
-        if (target != null) {
-            Vector3 offsetToTarget = (target.position - position);
-            acceleration = SteerTowards (offsetToTarget) * settings.targetWeight;
+        if (targeting) 
+        {
+            Vector3 offsetToTarget = (target - position);
+            acceleration = SteerTowards(offsetToTarget) * settings.targetWeight;
         }
 
         if (numPerceivedFlockmates != 0) {
@@ -81,8 +88,10 @@ public class Boid : MonoBehaviour {
         position = cachedTransform.position;
         forward = dir;
 
-        Debug.DrawRay(transform.position, forward, Color.green);
+        //Debug.DrawRay(transform.position, forward, Color.green);
     }
+
+    public void SetTarget(Vector3 newTarget) { target = newTarget; }
 
     bool IsHeadingForCollision () {
         RaycastHit hit;

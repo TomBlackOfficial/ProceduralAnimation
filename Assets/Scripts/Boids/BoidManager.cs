@@ -2,8 +2,17 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
+using UnityEngine.Events;
 
-public class BoidManager : MonoBehaviour {
+public class BoidManager : MonoBehaviour 
+{
+    public enum EnemyState
+    {
+        Idle,
+        Attacking,
+        Returning
+    }
+
 
     const int threadGroupSize = 1024;
 
@@ -11,31 +20,22 @@ public class BoidManager : MonoBehaviour {
     public ComputeShader compute;
     List<Part> parts = new List<Part>();
 
-    void Start () {
+    protected EnemyState currentState = EnemyState.Idle;
+
+    protected Vector3 detatchOffset = new Vector3(0, 0, 0);
+
+    void Start () 
+    {
         parts = GetComponentsInChildren<Part>(false).ToList();
         foreach (Part b in parts) {
-            b.Initialize (settings);
+            b.Initialize (settings, this);
         }
     }
 
-    void Update () {
-        if (parts != null) {
-
-            string functionName = null;
-            Vector3 mousePos = Vector3.zero;
-
-            if (Input.GetMouseButtonDown(1))
-            {
-                Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-                if (Physics.Raycast(ray, out RaycastHit raycastHit))
-                {
-                    mousePos = raycastHit.point;
-
-                    GameObject testObj = Instantiate(new GameObject("Test"));
-                    testObj.transform.position = mousePos;
-                }
-            }
-
+    protected virtual void Update () 
+    {
+        if (parts != null) 
+        {
             int numBoids = parts.Count;
             var boidData = new BoidData[numBoids];
 
@@ -58,14 +58,6 @@ public class BoidManager : MonoBehaviour {
             boidBuffer.GetData (boidData);
 
             for (int i = 0; i < parts.Count; i++) {
-                if (functionName != null)
-                {
-                    //if (functionName != "Return")
-                        //parts[i].target = mousePos;
-
-                    parts[i].SendMessage(functionName);
-                }
-
                 parts[i].avgFlockHeading = boidData[i].flockHeading;
                 parts[i].centreOfFlockmates = boidData[i].flockCentre;
                 parts[i].avgAvoidanceHeading = boidData[i].avoidanceHeading;
@@ -78,7 +70,28 @@ public class BoidManager : MonoBehaviour {
         }
     }
 
-    public struct BoidData {
+    public virtual void DetatchAll() 
+    {
+        if (currentState != EnemyState.Attacking)
+            return;  
+            
+        for (int i = 0; i < parts.Count; i++) {
+                parts[i].Detach(detatchOffset);
+        }
+    }
+
+    public virtual void ReturnAll() 
+    {
+        if (currentState == EnemyState.Attacking)
+            return;  
+        
+        for (int i = 0; i < parts.Count; i++) {
+                parts[i].Return();
+        }
+    }
+
+    public struct BoidData 
+    {
         public Vector3 position;
         public Vector3 direction;
 
